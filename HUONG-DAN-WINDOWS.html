@@ -1,0 +1,719 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>UniDesk — Hướng dẫn chạy ứng dụng</title><style>*{box-sizing:border-box}body{margin:0;font:16px/1.7 "Segoe UI",Arial,sans-serif;color:#253127;background:#f5f6f2}header{background:#243a2c;color:white;padding:44px max(24px,calc((100vw - 1080px)/2))}header b{color:#e8bd57;font-size:13px;letter-spacing:2px}header h1{font-size:34px;margin:10px 0}header p{color:#d1ddcc;max-width:800px}nav{position:sticky;top:0;background:#fff;border-bottom:1px solid #ddd;padding:12px 24px;text-align:center;z-index:2}nav a{margin:0 12px;font-size:14px;color:#354a38;text-decoration:none}main{max-width:1080px;margin:auto;padding:24px}section{background:white;padding:34px;margin:24px 0;border:1px solid #dfe4dc;border-radius:12px;scroll-margin-top:65px}section h1{font-size:27px;margin:0 0 24px}h2{font-size:21px;margin-top:32px}h3{font-size:17px}pre{background:#f3f5ef;padding:18px;overflow:auto;border-radius:8px;border:1px solid #e1e7d9;font-size:13px;line-height:1.6}code{font-family:Consolas,monospace;background:#f4f5ef;padding:2px 4px;font-size:.9em}pre code{padding:0;background:none}table{border-collapse:collapse;width:100%;font-size:14px;display:block;overflow:auto}th,td{text-align:left;padding:11px 14px;border:1px solid #e0e5dc;vertical-align:top}th{background:#edf1e7}tr:nth-child(even){background:#fafbf8}a{color:#486544}img{max-width:100%;border:1px solid #ddd;border-radius:10px}.lead{border-left:4px solid #d7b350;padding:12px 20px;background:#faf6e9}.end{font-size:13px;color:#7b8977;text-align:center;padding:30px}@media(max-width:650px){main{padding:12px}section{padding:20px}nav{position:static;text-align:left}nav a{display:inline-block;margin:5px 10px}header h1{font-size:27px}}</style></head><body><header><b>UNIDESK · PHIÊN BẢN 2.0</b><h1>Ứng dụng web quản lý sinh viên</h1><p>Toàn bộ mã nguồn, bản chạy sẵn và hướng dẫn dành cho Windows. Bắt đầu bằng CHAY-UNG-DUNG.cmd, sau đó mở http://localhost:8081.</p></header><nav><a href="#section-0">Bắt đầu</a><a href="#section-1">Cách chạy</a><a href="#section-2">Chức năng</a><a href="#section-3">Kiểm thử</a><a href="#section-4">Mã nguồn và API</a><a href="#section-5">HaUI và Render</a></nav><main><section id="section-0"><h1 id="unidesk-ung-dung-web-quan-ly-sinh-vien">UniDesk — Ứng dụng web quản lý sinh viên</h1>
+<p>Bộ mã nguồn mới, độc lập với dự án cũ. Backend Spring Boot, frontend React; giao diện sáng, menu bên trái, bảng quản lý và ba vai trò theo hướng của PDF tham khảo. Dùng logo HaUI theo yêu cầu cho bản đồ án; tên ứng dụng vẫn là UniDesk.</p>
+<p><strong>Cách nhanh nhất:</strong> giải nén toàn bộ ZIP, chạy <code>CHAY-UNG-DUNG.cmd</code>, đợi dòng <code>Started Application</code>, rồi mở <strong>http://localhost:8081</strong>. Cần Java 17 trở lên; khuyến nghị dùng JDK 21 cho môi trường phát triển. Bản JAR đã kèm giao diện: không cần npm, Maven hay MySQL cho lần chạy thử này.</p>
+<p>Đọc <code>HUONG-DAN-WINDOWS.html</code> bằng Chrome để xem hướng dẫn có định dạng, hoặc <code>docs/HUONG-DAN.md</code> để xem đầy đủ lệnh chạy, MySQL và cách sửa mã nguồn.</p>
+<h2 id="tai-khoan-mau">Tài khoản mẫu</h2>
+<table>
+<thead>
+<tr>
+<th>Vai trò</th>
+<th>Tên đăng nhập</th>
+<th>Mật khẩu ban đầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADMIN</td>
+<td>admin</td>
+<td>Admin@2026Demo</td>
+</tr>
+<tr>
+<td>Giảng viên</td>
+<td>gv001</td>
+<td>Teacher@2026Demo</td>
+</tr>
+<tr>
+<td>Sinh viên</td>
+<td>sv001</td>
+<td>Student@2026Demo</td>
+</tr>
+</tbody>
+</table>
+<p>Đây là dữ liệu thử. Tài khoản mẫu được tạo một lần khi database còn trống. Đổi mật khẩu không làm mất dữ liệu. Các tài khoản do ADMIN tạo hoặc reset sẽ bắt buộc đổi mật khẩu trước khi dùng hệ thống.</p>
+<h2 id="cac-tep-chinh">Các tệp chính</h2>
+<ul>
+<li><code>backend/</code>: mã Java, cấu hình, migration SQL, kiểm thử tự động và Maven Wrapper.</li>
+<li><code>frontend/</code>: mã React, CSS, cấu hình Vite và package-lock.json.</li>
+<li><code>release/student-manager-2.0.0.jar</code>: bản đã build, chứa cả giao diện và backend.</li>
+<li><code>database/TAO-DATABASE.sql</code>: tạo database và user riêng cho MySQL.</li>
+<li><code>CHAY-UNG-DUNG.cmd</code>: chạy ngay với database H2 lưu trên ổ đĩa.</li>
+<li><code>CHAY-MYSQL.ps1</code>: chạy bản JAR với MySQL và hỏi mật khẩu tại terminal.</li>
+<li><code>BUILD-LAI.cmd</code>: build lại frontend, chạy kiểm thử backend và đóng gói JAR mới.</li>
+<li><code>docs/CHUC-NANG-VA-QUY-TAC.md</code>: phạm vi chức năng và quy tắc nghiệp vụ.</li>
+<li><code>docs/KIEM-THU.md</code>: kết quả kiểm tra và kịch bản demo.</li>
+<li><code>docs/API.md</code>: danh sách API.</li>
+</ul>
+<p>Không ghi đè thư mục dự án cũ. Cơ sở dữ liệu cũ không được tự động chuyển sang cấu trúc này.</p>
+<h2 id="ban-cap-nhat-haui-render">Bản cập nhật HaUI + Render</h2>
+<p>Logo HaUI và cỡ chữ lớn hơn đã được build vào bản chạy sẵn. Xem <strong>HUONG-DAN-RENDER.html</strong> để cập nhật dữ liệu cũ, sửa giao diện và triển khai Render + Aiven MySQL từng bước. Mã nguồn cấu hình: <code>Dockerfile</code>, <code>render.yaml</code>, <code>deploy/start-render.sh</code>, <code>backend/src/main/resources/application-render.properties</code>.</p></section><section id="section-1"><h1 id="huong-dan-chay-tren-windows">Hướng dẫn chạy trên Windows</h1>
+<h2 id="1-chuan-bi-va-giai-nen">1. Chuẩn bị và giải nén</h2>
+<p>Giải nén toàn bộ ZIP, ví dụ thành <code>D:\student-manager-v2</code>. Không mở chương trình từ bên trong cửa sổ ZIP. Giữ nguyên cấu trúc các thư mục.</p>
+<p>Mở PowerShell và kiểm tra:</p>
+<pre><code class="language-powershell">java -version
+</code></pre>
+<p>Bản chạy sẵn cần Java 17 trở lên. Dự án được biên dịch với mức tương thích Java 17; JDK 21 là lựa chọn phù hợp khi phát triển. Nếu máy đang dùng Java 24 và chạy được bản JAR, không cần cài thêm chỉ để chạy thử. Nếu lệnh không được nhận diện, kiểm tra JAVA_HOME và PATH, rồi mở lại terminal.</p>
+<h2 id="2-chay-ngay-bang-mot-tep">2. Chạy ngay bằng một tệp</h2>
+<p>Nhấp đúp <code>CHAY-UNG-DUNG.cmd</code>. Đợi xuất hiện <code>Started Application</code>, rồi mở:</p>
+<p><strong>http://localhost:8081</strong></p>
+<p>Giữ cửa sổ lệnh mở. Đăng nhập bằng tài khoản trong README. Dùng cửa sổ ẩn danh hoặc trình duyệt khác để kiểm tra một vai trò khác cùng lúc; các tab cùng hồ sơ trình duyệt chia sẻ phiên.</p>
+<p>Bản chạy nhanh dùng H2 dạng tệp, tự tạo database và dữ liệu mẫu; chưa cần bật MySQL. Dữ liệu lưu tại <code>backend\data</code>, còn nguyên sau khi tắt/mở ứng dụng. Không xóa thư mục này nếu cần giữ dữ liệu.</p>
+<p>Dừng bằng Ctrl+C. Không chạy hai backend đồng thời với cùng tệp H2. Nếu cổng 8081 bận, dừng phiên UniDesk cũ hoặc mở PowerShell tại thư mục backend và chạy:</p>
+<pre><code class="language-powershell">java -jar ..\release\student-manager-2.0.0.jar --spring.profiles.active=demo --server.port=8082
+</code></pre>
+<p>Sau đó truy cập http://localhost:8082.</p>
+<h2 id="3-chay-voi-mysql">3. Chạy với MySQL</h2>
+<p>H2 và MySQL là hai nguồn dữ liệu riêng. Chuyển cấu hình không tự chuyển dữ liệu đã nhập từ nguồn này sang nguồn kia.</p>
+<ol>
+<li>Bật dịch vụ MySQL 8.x và mở MySQL Workbench.</li>
+<li>Mở <code>database\TAO-DATABASE.sql</code>, thay <code>CHOOSE_A_NEW_PASSWORD</code> bằng mật khẩu bạn chọn, rồi chạy bằng tài khoản quản trị MySQL. Không dùng database của dự án cũ.</li>
+<li>Mở PowerShell tại thư mục dự án:</li>
+</ol>
+<pre><code class="language-powershell">Set-Location D:\student-manager-v2
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\CHAY-MYSQL.ps1
+</code></pre>
+<p>Lệnh trên chỉ cho phép chạy tệp script trong tiến trình PowerShell đó; không thay chính sách của máy. Bạn cũng có thể chạy thủ công các lệnh dưới đây.</p>
+<ol>
+<li>Nhập tên tài khoản MySQL <code>student_v2</code> và mật khẩu đã chọn.</li>
+<li>Với database mới, nhập <code>YES</code> khi được hỏi tạo dữ liệu mẫu. Flyway tự tạo bảng; không import thêm migration bằng tay.</li>
+<li>Đợi backend khởi động và mở http://localhost:8081.</li>
+</ol>
+<p>Cách chạy thủ công, không dùng script:</p>
+<pre><code class="language-powershell">Set-Location D:\student-manager-v2\backend
+$env:DB_USERNAME = &quot;student_v2&quot;
+$dbSecret = Read-Host &quot;Mat khau MySQL&quot; -AsSecureString
+$env:DB_PASSWORD = [System.Net.NetworkCredential]::new(&quot;&quot;, $dbSecret).Password
+$env:DB_URL = &quot;jdbc:mysql://localhost:3306/student_manager_v2?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=Asia/Ho_Chi_Minh&quot;
+$env:APP_SEED = &quot;true&quot;
+java -jar ..\release\student-manager-2.0.0.jar --spring.profiles.active=mysql --server.port=8081
+</code></pre>
+<p><code>APP_SEED=true</code> chỉ khởi tạo mẫu khi bảng users trống. Sau lần đầu, có thể đặt false. Đừng tự xóa users để khởi tạo lại trên database đang có dữ liệu.</p>
+<p>Chế độ mặc định chỉ lắng nghe trên máy đang chạy (<code>127.0.0.1</code>). Triển khai Internet cần cấu hình HTTPS, cookie bảo mật, tài khoản riêng, giới hạn thử đăng nhập và quy trình vận hành. Bản này phục vụ phát triển và demo đồ án trên máy.</p>
+<h2 id="4-mo-va-sua-ma-nguon">4. Mở và sửa mã nguồn</h2>
+<h3 id="backend-trong-intellij">Backend trong IntelliJ</h3>
+<p>Mở <code>backend\pom.xml</code> bằng IntelliJ và chọn Open as Project. Chọn JDK phù hợp trong Project SDK, chờ Maven tải thư viện. Chạy lớp <code>vn.studentmanager.Application</code>.</p>
+<p>Mặc định backend chạy cổng 8080, dùng profile demo. Trong Run Configuration, đặt Working directory là thư mục backend để dùng cùng vị trí <code>backend\data</code>. Dừng bản JAR trước để tránh khóa tệp H2.</p>
+<p>Muốn dùng MySQL trong IntelliJ: đặt active profile <code>mysql</code>, khai báo DB_USERNAME, DB_PASSWORD, DB_URL và APP_SEED trong Run Configuration. Không ghi mật khẩu vào mã nguồn.</p>
+<h3 id="frontend-trong-vs-code">Frontend trong VS Code</h3>
+<p>Cần Node.js từ 20.19 trở lên; có thể dùng Node 22 hoặc 24. Mở thư mục frontend bằng VS Code rồi chạy PowerShell:</p>
+<pre><code class="language-powershell">Set-Location D:\student-manager-v2\frontend
+npm.cmd ci
+npm.cmd run dev
+</code></pre>
+<p>Mở <strong>http://localhost:5173</strong>. Vite chuyển <code>/api</code> tới backend cổng 8080. Giữ cả hai tiến trình chạy. Nếu backend đang chạy cổng 8081, dừng bản JAR và chạy backend cổng 8080, hoặc sửa target trong <code>frontend\vite.config.js</code> cho đúng.</p>
+<h2 id="5-build-lai-sau-khi-sua">5. Build lại sau khi sửa</h2>
+<p>Dừng bản JAR đang chạy, nhấp đúp <code>BUILD-LAI.cmd</code>. Script sẽ:</p>
+<ol>
+<li>Cài đúng phiên bản frontend theo package-lock.json.</li>
+<li>Build React và chép vào tài nguyên tĩnh của backend.</li>
+<li>Chạy <code>mvnw.cmd clean verify</code>, gồm các kiểm thử tự động.</li>
+<li>Cập nhật JAR trong thư mục release.</li>
+</ol>
+<p>Cần mạng ở lần build đầu để tải npm/Maven. Khi báo thành công, chạy lại <code>CHAY-UNG-DUNG.cmd</code>. Nếu build lỗi, giữ nguyên thông báo để sửa; không bỏ qua kiểm thử.</p>
+<p>Chạy kiểm thử backend riêng:</p>
+<pre><code class="language-powershell">Set-Location D:\student-manager-v2\backend
+.\mvnw.cmd test
+</code></pre>
+<p>Kiểm thử dùng H2 trong bộ nhớ riêng và không đụng database đang chạy của bạn. Backend dùng Spring JDBC với câu SQL có tham số; không sử dụng JPA trong phiên bản mới này.</p>
+<h2 id="6-nhapxuat-csv-voi-excel">6. Nhập/xuất CSV với Excel</h2>
+<ul>
+<li>Trang Quản lý sinh viên → Nhập CSV → Tải CSV mẫu.</li>
+<li>Giữ tiêu đề cột, lưu định dạng CSV UTF-8, dấu phẩy phân cách.</li>
+<li><code>class_id</code> phải là ID lớp có thật. Xem ID bằng API <code>/api/admin/catalog/classes</code> khi đang đăng nhập ADMIN, hoặc cột ID trong trang danh mục lớp.</li>
+<li>Ngày theo <code>yyyy-mm-dd</code>; giới tính MALE/FEMALE/OTHER; trạng thái STUDYING/PAUSED/LEFT/GRADUATED.</li>
+<li>Mỗi lần nhập tối đa 200 dòng. Một dòng lỗi thì toàn bộ lần nhập được hoàn tác, không tạo dữ liệu dở dang.</li>
+<li>Mật khẩu ban đầu dùng chung cho đợt nhập chỉ để cấp lần đầu; từng người dùng bắt buộc đổi trước khi sử dụng.</li>
+<li>Nút Xuất CSV xuất các dòng khớp tìm kiếm/bộ lọc, không chỉ trang đang nhìn thấy.</li>
+<li>Không hỗ trợ trực tiếp tệp <code>.xlsx</code>; hãy lưu thành CSV UTF-8 trước khi nhập.</li>
+</ul>
+<h2 id="7-sao-luu-va-phuc-hoi">7. Sao lưu và phục hồi</h2>
+<p>H2: dừng ứng dụng hoàn toàn rồi sao chép cả thư mục <code>backend\data</code> tới nơi lưu trữ khác. Khi phục hồi, dừng ứng dụng, sao lưu dữ liệu hiện tại và thay bằng bản đã lưu. Giữ bản dữ liệu và phiên bản mã nguồn tương ứng.</p>
+<p>MySQL: dùng Data Export của MySQL Workbench để xuất <code>student_manager_v2</code> gồm cấu trúc và dữ liệu. Khi thử phục hồi, nhập vào một database trống riêng rồi đổi DB_URL để kiểm tra. Bản xuất phải gồm bảng <code>flyway_schema_history</code>. Không chép trực tiếp các tệp vật lý của MySQL đang chạy.</p>
+<h2 id="8-loi-thuong-gap">8. Lỗi thường gặp</h2>
+<table>
+<thead>
+<tr>
+<th>Hiện tượng</th>
+<th>Cách xử lý</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>java</code> không được nhận diện</td>
+<td>Kiểm tra cài đặt Java, JAVA_HOME, PATH; mở terminal mới</td>
+</tr>
+<tr>
+<td><code>Port 8081 was already in use</code></td>
+<td>Dừng phiên cũ hoặc chạy cổng khác</td>
+</tr>
+<tr>
+<td><code>Database may be already in use</code></td>
+<td>Đang có hai backend mở cùng H2; dừng một bản</td>
+</tr>
+<tr>
+<td><code>Access denied for user</code></td>
+<td>Kiểm tra user/mật khẩu MySQL, không dùng mật khẩu ADMIN website</td>
+</tr>
+<tr>
+<td><code>Unknown database</code></td>
+<td>Chạy script tạo database riêng trước</td>
+</tr>
+<tr>
+<td>Frontend không lấy được dữ liệu</td>
+<td>Kiểm tra backend8080 và proxy trong vite.config.js</td>
+</tr>
+<tr>
+<td>CSV lỗi</td>
+<td>Kiểm tra UTF-8, dấu phẩy, mã trùng, class_id và ngày</td>
+</tr>
+<tr>
+<td>Đăng nhập mẫu không được sau khi đổi mật khẩu</td>
+<td>Dùng mật khẩu mới; khởi động lại không đặt lại mật khẩu</td>
+</tr>
+<tr>
+<td>Bị đưa về đăng nhập</td>
+<td>Phiên hết hạn, bị khóa/xóa tài khoản hoặc mật khẩu đã đổi</td>
+</tr>
+</tbody>
+</table>
+<p>Giao diện phát triển không yêu cầu mở cổng 8080 trực tiếp trên trình duyệt; hãy mở 5173. Bản đóng gói dùng chung backend và giao diện ở 8081.</p>
+<h2 id="9-anh-giao-dien-thuc-te">9. Ảnh giao diện thực tế</h2>
+<p><img alt="Trang tổng quan" src="images/tong-quan.png" /></p>
+<p><img alt="Quản lý sinh viên" src="images/sinh-vien.png" /></p></section><section id="section-2"><h1 id="pham-vi-chuc-nang-va-quy-tac-nghiep-vu">Phạm vi chức năng và quy tắc nghiệp vụ</h1>
+<p>Đây là bản đồ án có thể chạy trọn luồng quản lý hồ sơ, học phần và điểm; không phải toàn bộ hệ thống vận hành của một trường đại học. Các quy tắc điểm là quy ước minh họa của dự án, cần đối chiếu yêu cầu giảng viên trước khi dùng làm quy chế trường.</p>
+<h2 id="vai-tro">Vai trò</h2>
+<table>
+<thead>
+<tr>
+<th>Vai trò</th>
+<th>Quyền</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADMIN</td>
+<td>Danh mục, hồ sơ, lớp học phần, đăng ký thay sinh viên, điểm, chốt/mở điểm, tài khoản, nhật ký</td>
+</tr>
+<tr>
+<td>TEACHER</td>
+<td>Chỉ lớp được phân công; xem danh sách, nhập/sửa điểm khi chưa chốt, chốt điểm khi đủ điều kiện</td>
+</tr>
+<tr>
+<td>STUDENT</td>
+<td>Xem hồ sơ mình; tra cứu lớp mở, đăng ký/hủy; xem điểm đã công bố của mình</td>
+</tr>
+</tbody>
+</table>
+<p>Quyền được kiểm tra ở backend. Giấu nút ở giao diện không phải cơ chế bảo vệ duy nhất. Có phiên cookie HttpOnly, SameSite=Lax và CSRF cho thao tác thay đổi dữ liệu. Mật khẩu băm BCrypt. Mật khẩu mới ít nhất 12 ký tự và tối đa 72 byte UTF-8.</p>
+<h2 id="a-trien-khai">Đã triển khai</h2>
+<ul>
+<li>Khoa, ngành, lớp hành chính, môn học/tín chỉ, học kỳ: thêm/sửa/xóa có kiểm tra liên kết.</li>
+<li>Sinh viên: thông tin liên hệ, ngày sinh, giới tính, lớp và trạng thái đang học/bảo lưu/thôi học/tốt nghiệp.</li>
+<li>Giảng viên: thông tin liên hệ, khoa và liên kết tài khoản.</li>
+<li>Tạo sinh viên/giảng viên đồng thời tạo tài khoản trong một giao dịch; lỗi thì hoàn tác.</li>
+<li>Tên đăng nhập lấy từ mã hồ sơ chuyển chữ thường. Sửa mã hồ sơ sau này không tự đổi tên đăng nhập đã cấp.</li>
+<li>Quản lý tài khoản: cấp lại cho hồ sơ chưa có tài khoản, reset mật khẩu, khóa/mở khóa, xóa riêng tài khoản.</li>
+<li>Khóa/xóa/reset/đổi mật khẩu làm phiên cũ mất quyền ở yêu cầu API kế tiếp; không giả định rằng đóng giao diện trên máy người dùng có thể xóa dữ liệu họ đã xem.</li>
+<li>Tài khoản mới/reset bắt buộc đổi mật khẩu; người dùng được tự đổi mật khẩu sau khi xác minh mật khẩu hiện tại.</li>
+<li>Không khóa/xóa ADMIN qua chức năng quản trị này, tránh mất tài khoản quản lý cuối cùng.</li>
+<li>Lớp học phần: chọn môn/học kỳ/giảng viên, sĩ số, phòng, lịch mô tả, trạng thái, tỷ trọng.</li>
+<li>Đăng ký: kiểm tra sinh viên đang học, lớp mở, không vượt sĩ số, không đăng ký hai lớp của cùng môn trong cùng học kỳ.</li>
+<li>Khóa hàng dữ liệu sinh viên và lớp trong giao dịch để bảo vệ đăng ký đồng thời.</li>
+<li>Hủy chỉ khi lớp đang mở, chưa chốt và chưa có bất kỳ bản ghi điểm. Giữ lịch sử đăng ký đã hủy.</li>
+<li>Điểm TX1, TX2, KTHP: từ 0 đến 10, tối đa 2 chữ số thập phân; nhập đủ ba thành phần.</li>
+<li>Tổng tỷ trọng 100%; không sửa tỷ trọng khi đã có điểm. Không đổi tín chỉ của môn đã có lịch sử đăng ký.</li>
+<li>Chốt điểm cần lớp đã đóng đăng ký và mọi đăng ký đang hoạt động đã có điểm.</li>
+<li>Giảng viên chỉ nhập/chốt lớp mình phụ trách. Chỉ ADMIN mở lại điểm, bắt buộc lý do.</li>
+<li>Sửa điểm đã có bắt buộc lý do. Nhật ký ghi người sửa, thời điểm, điểm cũ/mới.</li>
+<li>Sinh viên chỉ thấy điểm sau khi chốt; mở lại thì tạm ẩn điểm khỏi bảng điểm và GPA đến lần chốt tiếp theo.</li>
+<li>Tổng quan theo vai trò, lọc danh sách lớp theo học kỳ, tìm kiếm/sắp xếp/phân trang phía trình duyệt.</li>
+<li>Nhập sinh viên CSV trong giao dịch, xuất CSV cho các bảng.</li>
+<li>Nhật ký 500 thao tác gần nhất; quy trình sao lưu/khôi phục bằng tệp H2 hoặc MySQL Workbench.</li>
+</ul>
+<h2 id="quy-tac-xoa">Quy tắc xóa</h2>
+<table>
+<thead>
+<tr>
+<th>Đối tượng</th>
+<th>Xử lý</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chỉ tài khoản</td>
+<td>Gỡ liên kết rồi xóa tài khoản; giữ hồ sơ, đăng ký và điểm</td>
+</tr>
+<tr>
+<td>Sinh viên chưa có lịch sử đăng ký</td>
+<td>Sau xác nhận, xóa hồ sơ và tài khoản liên kết cùng giao dịch</td>
+</tr>
+<tr>
+<td>Sinh viên đã có lịch sử, kể cả đã hủy</td>
+<td>Chặn xóa hồ sơ; có thể khóa/xóa riêng tài khoản hoặc chuyển trạng thái học tập</td>
+</tr>
+<tr>
+<td>Giảng viên đang phụ trách lớp</td>
+<td>Chặn xóa hồ sơ; chuyển phân công trước</td>
+</tr>
+<tr>
+<td>Giảng viên chưa có lớp phụ trách</td>
+<td>Xóa hồ sơ và tài khoản sau xác nhận</td>
+</tr>
+<tr>
+<td>Danh mục được sử dụng/lớp có đăng ký</td>
+<td>Không xóa; trả thông báo xung đột</td>
+</tr>
+</tbody>
+</table>
+<p>Khóa tài khoản và trạng thái học tập là hai thuộc tính riêng. Ví dụ bảo lưu sẽ ngăn đăng ký mới, nhưng không tự khóa quyền xem thông tin. ADMIN quyết định khóa tài khoản khi cần.</p>
+<h2 id="tinh-iem-va-gpa">Tính điểm và GPA</h2>
+<p>Tổng kết = (TX1 × tỷ trọng TX1 + TX2 × tỷ trọng TX2 + KTHP × tỷ trọng KTHP) / 100. Làm tròn HALF_UP đến 2 chữ số.</p>
+<table>
+<thead>
+<tr>
+<th>Tổng kết đã làm tròn</th>
+<th>Điểm chữ</th>
+<th>Điểm hệ 4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8.50–10</td>
+<td>A</td>
+<td>4</td>
+</tr>
+<tr>
+<td>7.00–8.49</td>
+<td>B</td>
+<td>3</td>
+</tr>
+<tr>
+<td>5.50–6.99</td>
+<td>C</td>
+<td>2</td>
+</tr>
+<tr>
+<td>4.00–5.49</td>
+<td>D</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Dưới 4.00</td>
+<td>F</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>GPA = tổng (điểm hệ 4 × tín chỉ) / tổng tín chỉ được tính; bao gồm môn F. Chỉ lấy đăng ký ACTIVE đã được chốt và có điểm. GPA học kỳ tính các lần học trong học kỳ đó. GPA tích lũy chọn lần có tổng kết cao nhất của từng mã môn, mỗi môn chỉ tính một lần. Tín chỉ đạt là tín chỉ của môn có điểm A/B/C/D theo cùng phạm vi. Chưa có điểm thì GPA hiển thị “—”, không giả thành 0.</p>
+<h2 id="gioi-han-a-xac-inh">Giới hạn đã xác định</h2>
+<ul>
+<li>Lịch học là văn bản, chưa kiểm tra trùng tiết/phòng/giảng viên.</li>
+<li>Chưa có môn tiên quyết, khung chương trình theo khóa, hạn mức tín chỉ hoặc đợt đăng ký tự động theo ngày.</li>
+<li>Chưa xử lý điểm liệt, vắng thi, miễn học, học phần không tính GPA và quy tắc riêng từng trường.</li>
+<li>Chưa có tài liệu học phần, học phí, thanh toán, điểm danh, thông báo email, phúc khảo hoặc xét tốt nghiệp tự động.</li>
+<li>Chưa có quên mật khẩu qua email; người dùng liên hệ ADMIN.</li>
+<li>CSV tương thích Excel; không đọc trực tiếp XLSX.</li>
+<li>Các bảng tải dữ liệu để tìm kiếm/phân trang ở client; phù hợp dữ liệu đồ án, chưa tối ưu cho hàng trăm nghìn hồ sơ.</li>
+<li>Dùng Spring JDBC, không phải JPA. React JavaScript/CSS, không bắt buộc TypeScript/Tailwind/JWT như PDF mẫu.</li>
+<li>H2 là chế độ chạy nhanh. Có migration/cấu hình MySQL, nhưng chưa kiểm thử trên MySQL thật trong môi trường xây dựng này.</li>
+<li>Chưa đánh giá tải lớn, kiểm thử xâm nhập hay triển khai Internet. Chế độ mặc định chỉ truy cập trên máy cục bộ.</li>
+</ul></section><section id="section-3"><h1 id="kiem-thu-va-kich-ban-trinh-dien">Kiểm thử và kịch bản trình diễn</h1>
+<h2 id="ket-qua-a-thuc-hien">Kết quả đã thực hiện</h2>
+<ul>
+<li>Backend: <strong>19 kiểm thử tích hợp đạt</strong>, 0 lỗi, 0 bỏ qua. Spring Boot chạy với H2 trong bộ nhớ riêng.</li>
+<li>Frontend: build Vite thành công.</li>
+<li>Bản JAR đóng gói: đã chạy giao diện tĩnh, đăng nhập, trang sinh viên và danh mục lớp, không dùng tiến trình Vite.</li>
+<li>Trình duyệt Chromium: các luồng bên dưới đã thao tác tự động qua giao diện, không chỉ gọi API.</li>
+<li>Đã xem ảnh giao diện đăng nhập, tổng quan, bảng sinh viên và màn hình điện thoại.</li>
+<li>Môi trường xác minh: Linux, Java 17, Node.js 24. Chưa trực tiếp chạy script Windows hoặc máy chủ MySQL thật.</li>
+</ul>
+<h2 id="cac-kiem-thu-backend">Các kiểm thử backend</h2>
+<ol>
+<li>Người chưa đăng nhập không đọc được dữ liệu quản trị.</li>
+<li>Sai mật khẩu bị từ chối.</li>
+<li>Đăng nhập cần CSRF; sinh viên không vào API ADMIN.</li>
+<li>Xóa sinh viên chưa có lịch sử đồng thời xóa tài khoản liên kết.</li>
+<li>Chặn xóa sinh viên đã có lịch sử đăng ký.</li>
+<li>Xóa riêng tài khoản giữ hồ sơ/điểm và thu hồi phiên cũ.</li>
+<li>Khóa tài khoản từ chối đăng nhập và phiên đang hoạt động.</li>
+<li>Reset mật khẩu thu hồi phiên và bắt buộc đổi mật khẩu mới.</li>
+<li>Chặn đăng ký trùng, cho hủy và đăng ký lại cùng bản ghi.</li>
+<li>Sinh viên không hủy được đăng ký của người khác.</li>
+<li>Điểm chưa chốt bị ẩn; chốt cần đóng đăng ký; điểm đã chốt không sửa được; mở lại chỉ ADMIN, có lý do.</li>
+<li>Không hủy đăng ký sau khi đã nhập bất kỳ điểm nào.</li>
+<li>Sinh viên không đọc danh sách lớp/ghi điểm bằng API giảng viên.</li>
+<li>Từ chối điểm vượt 10 hoặc quá hai chữ số thập phân.</li>
+<li>Nhập CSV gặp dòng lỗi hoàn tác toàn bộ batch và tài khoản đã tạo trong batch.</li>
+<li>Hai sinh viên cùng đăng ký suất cuối: chỉ một người thành công.</li>
+<li>GPA tích lũy xử lý học lại bằng điểm tổng kết cao nhất, chỉ tính môn một lần.</li>
+<li>Giảng viên không xem bảng điểm lớp của giảng viên khác.</li>
+<li>Mật khẩu có khoảng trắng đầu/cuối vẫn được xác minh đúng, không tự trim.</li>
+</ol>
+<p>Mã kiểm thử: <code>backend/src/test/java/vn/studentmanager/ApplicationTest.java</code>.</p>
+<h2 id="cac-luong-giao-dien-a-chay">Các luồng giao diện đã chạy</h2>
+<table>
+<thead>
+<tr>
+<th>Luồng</th>
+<th>Kết quả</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADMIN tạo sinh viên kèm tài khoản</td>
+<td>Đạt</td>
+</tr>
+<tr>
+<td>Tài khoản mới đổi mật khẩu lần đầu và đăng nhập lại</td>
+<td>Đạt</td>
+</tr>
+<tr>
+<td>ADMIN xóa hồ sơ/tài khoản; phiên người bị xóa trở về đăng nhập ở yêu cầu tiếp theo</td>
+<td>Đạt</td>
+</tr>
+<tr>
+<td>Cấp tài khoản cho hồ sơ có sẵn chưa liên kết</td>
+<td>Đạt</td>
+</tr>
+<tr>
+<td>Nhập sinh viên qua CSV</td>
+<td>Đạt</td>
+</tr>
+<tr>
+<td>Giảng viên nhập điểm lớp phụ trách</td>
+<td>Đạt</td>
+</tr>
+<tr>
+<td>Sinh viên đăng ký, xem bảng điểm và hủy học phần chưa có điểm</td>
+<td>Đạt</td>
+</tr>
+<tr>
+<td>Màn hình điện thoại không tràn toàn trang, bảng cuộn ngang</td>
+<td>Đạt</td>
+</tr>
+</tbody>
+</table>
+<h2 id="kich-ban-demo-o-an">Kịch bản demo đồ án</h2>
+<ol>
+<li>Chạy ứng dụng, đăng nhập ADMIN, xem thống kê và danh mục.</li>
+<li>Tạo sinh viên TEST01, chọn lớp, đặt mật khẩu ban đầu.</li>
+<li>Mở cửa sổ ẩn danh, đăng nhập test01, đổi mật khẩu theo yêu cầu.</li>
+<li>Sinh viên đăng ký một lớp mở. ADMIN quan sát sĩ số tăng.</li>
+<li>ADMIN đóng đăng ký của lớp vừa chọn.</li>
+<li>Đăng nhập giảng viên phụ trách, vào Danh sách / Điểm và nhập đủ điểm cho tất cả sinh viên.</li>
+<li>Chốt điểm. Sinh viên tải lại bảng điểm, xem tổng kết và GPA.</li>
+<li>ADMIN mở lại điểm với lý do; giảng viên sửa điểm với lý do; ADMIN xem nhật ký.</li>
+<li>ADMIN khóa tài khoản test01; tài khoản này không gọi API tiếp được.</li>
+<li>Mở khóa; thử xóa hồ sơ test01: bị chặn do có lịch sử học tập.</li>
+<li>Xóa riêng tài khoản test01: hồ sơ và điểm vẫn còn. Cấp tài khoản lại từ hồ sơ nếu muốn tiếp tục.</li>
+<li>Tạo một hồ sơ khác chưa đăng ký, rồi xóa hồ sơ cùng tài khoản qua cửa sổ xác nhận.</li>
+</ol>
+<p>Không đánh dấu toàn bộ hệ thống “đạt” chỉ từ những kiểm thử này. Khi bổ sung chức năng hoặc thay đổi MySQL/quy chế, cần kiểm tra lại các luồng liên quan.</p>
+<h2 id="cap-nhat-haui-va-render-29092026">Cập nhật HaUI và Render — 29/09/2026</h2>
+<ul>
+<li>Backend: 21 kiểm thử đạt, 0 lỗi; bao gồm hai kiểm thử mới về khởi tạo quản trị riêng, giữ mật khẩu khi restart và health public.</li>
+<li>Frontend production build đạt. JAR chạy độc lập đã kiểm tra đăng nhập, dữ liệu, logo tải thành công, cỡ chữ gốc 16px, danh mục và màn hình 390px không tràn trang.</li>
+<li>Script entrypoint đã kiểm tra cú pháp sh. Chưa chạy Docker build hoặc deploy thực trên Render; kiểm thử profile render dùng H2 thay MySQL nên chưa xác thực kết nối Aiven/TLS trên môi trường thật.</li>
+</ul></section><section id="section-4"><h1 id="api-va-to-chuc-ma-nguon">API và tổ chức mã nguồn</h1>
+<p>Base URL khi chạy bản JAR: http://localhost:8081/api. Khi phát triển: frontend5173 proxy backend8080.</p>
+<h2 id="xac-thuc">Xác thực</h2>
+<p>GET <code>/auth/csrf</code> lấy token và tên header. POST <code>/auth/login</code> dùng form-urlencoded gồm username/password và header CSRF. Sau đăng nhập lấy CSRF mới. Các yêu cầu thay đổi dữ liệu gửi CSRF và cookie phiên; không dùng JWT. GET <code>/auth/me</code>, POST <code>/auth/logout</code>, POST <code>/auth/password</code> (oldPassword, newPassword).</p>
+<h2 id="api-theo-nghiep-vu">API theo nghiệp vụ</h2>
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>Phương thức</th>
+<th>Quyền</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/admin/catalog/{kind}</code></td>
+<td>GET, POST</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td><code>/admin/catalog/{kind}/{id}</code></td>
+<td>PUT, DELETE</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td><code>/admin/import/students</code></td>
+<td>POST</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td><code>/admin/accounts</code></td>
+<td>GET, POST</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td><code>/admin/accounts/{id}</code></td>
+<td>DELETE</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td><code>/admin/accounts/{id}/enabled</code></td>
+<td>PUT</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td><code>/admin/accounts/{id}/password</code></td>
+<td>PUT</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td><code>/admin/audit</code></td>
+<td>GET</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td><code>/sections</code></td>
+<td>GET</td>
+<td>Danh sách giới hạn theo vai trò</td>
+</tr>
+<tr>
+<td><code>/admin/sections</code></td>
+<td>POST</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td><code>/admin/sections/{id}</code></td>
+<td>PUT, DELETE</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td><code>/sections/{id}/enroll</code></td>
+<td>POST</td>
+<td>STUDENT của mình, hoặc ADMIN gửi student_id</td>
+</tr>
+<tr>
+<td><code>/enrollments/{id}</code></td>
+<td>DELETE</td>
+<td>STUDENT của mình hoặc ADMIN</td>
+</tr>
+<tr>
+<td><code>/sections/{id}/roster</code></td>
+<td>GET</td>
+<td>ADMIN hoặc giảng viên phụ trách</td>
+</tr>
+<tr>
+<td><code>/scores/{enrollmentId}</code></td>
+<td>PUT</td>
+<td>ADMIN hoặc giảng viên phụ trách</td>
+</tr>
+<tr>
+<td><code>/sections/{id}/lock</code></td>
+<td>POST</td>
+<td>Giảng viên phụ trách/ADMIN chốt; chỉ ADMIN mở lại</td>
+</tr>
+<tr>
+<td><code>/transcript</code></td>
+<td>GET</td>
+<td>STUDENT của mình; ADMIN thêm ?studentId=...</td>
+</tr>
+<tr>
+<td><code>/dashboard</code></td>
+<td>GET</td>
+<td>Theo vai trò; tùy chọn ?semesterId=...</td>
+</tr>
+</tbody>
+</table>
+<p>kind: departments, majors, classes, students, teachers, subjects, semesters.</p>
+<p>Các tên trường theo snake_case trong migration và frontend/config.js. Lỗi trả JSON <code>message</code>, mã 400 dữ liệu sai, 401 hết/chưa có phiên, 403 thiếu quyền/CSRF/đổi mật khẩu bắt buộc, 404 không tìm thấy, 409 liên kết/trùng dữ liệu.</p>
+<h2 id="ma-nguon">Mã nguồn</h2>
+<ul>
+<li>Security.java: cấu hình Spring Security, CSRF, form login và kiểm tra phiên còn hiệu lực qua auth_version.</li>
+<li>Api.java: định tuyến REST, nhận dữ liệu từ client.</li>
+<li>Catalogs.java: danh mục/hồ sơ/CSV và quy tắc xóa.</li>
+<li>Accounts.java: mật khẩu, cấp/khóa/xóa tài khoản.</li>
+<li>Academic.java: lớp học phần, đăng ký, điểm, chốt điểm, bảng điểm/GPA.</li>
+<li>Db.java: thao tác SQL tham số với JdbcTemplate.</li>
+<li>Input.java: kiểm tra dữ liệu đầu vào; không ghép dữ liệu người dùng vào SQL.</li>
+<li>Audit.java: ghi nhật ký trong giao dịch nghiệp vụ.</li>
+<li>DemoData.java: tạo dữ liệu thử khi bật app.seed và bảng users trống.</li>
+<li>frontend/src/config.js: cấu hình các trường biểu mẫu.</li>
+<li>frontend/src/components.jsx: bảng, form, cửa sổ xác nhận, thông báo.</li>
+<li>frontend/src/App.jsx: màn hình theo vai trò.</li>
+<li>frontend/src/style.css: giao diện responsive.</li>
+</ul>
+<p>Các câu SQL ghép tên bảng chỉ dùng danh sách cho phép trong mã; giá trị đầu vào luôn truyền qua placeholder. Khi mở rộng cần giữ nguyên nguyên tắc này.</p></section><section id="section-5"><h1 id="cap-nhat-haui-va-trien-khai-render">Cập nhật HaUI và triển khai Render</h1>
+<p>Bản cập nhật ngày 29/09/2026. Gói này đã có logo HaUI, chữ lớn hơn và cấu hình Render + MySQL bên ngoài. UniDesk vẫn là tên ứng dụng đồ án.</p>
+<h2 id="1-dung-ban-moi-tren-windows">1. Dùng bản mới trên Windows</h2>
+<ol>
+<li>Tắt ứng dụng cũ bằng Ctrl+C tại cửa sổ đang chạy. Không chạy đồng thời hai bản.</li>
+<li>Sao lưu thư mục ứng dụng cũ, đặc biệt <strong>backend/data</strong>. Đây là dữ liệu H2 của cách chạy mặc định bằng CHAY-UNG-DUNG.cmd.</li>
+<li>Giải nén ZIP mới ra <strong>thư mục mới</strong>, không chạy trực tiếp trong ZIP.</li>
+<li>Nếu muốn giữ dữ liệu đã nhập: khi cả hai bản đều đã tắt, sao chép toàn bộ <strong>backend/data</strong> từ bản cũ sang đúng <strong>backend/data</strong> của bản mới, trước khi chạy bản mới. Không lấy thư mục target thay cho data. Nếu dùng MySQL từ trước, giữ cấu hình MySQL và sao lưu database MySQL thay vì chép H2.</li>
+<li>Mở <strong>CHAY-UNG-DUNG.cmd</strong>, truy cập <strong>http://localhost:8081</strong>. Bản JAR đã build sẵn nên không cần BUILD-LAI.cmd nếu chỉ sử dụng.</li>
+<li>Nếu trình duyệt còn hình cũ, nhấn Ctrl+F5. Tài khoản và dữ liệu cũ được giữ khi chép đúng data. Với database mới tại máy, tài khoản demo vẫn dùng như hướng dẫn Windows.</li>
+</ol>
+<p>Không thay đổi migration V1 hoặc xóa database để cập nhật giao diện.</p>
+<h2 id="2-muon-tu-sua-logo-va-co-chu-sau-nay">2. Muốn tự sửa logo và cỡ chữ sau này</h2>
+<ul>
+<li>Ảnh logo: <strong>frontend/public/haui-logo.png</strong>. Thay bằng ảnh cùng tên; nên dùng ảnh vuông, rõ nét. App.jsx dùng ảnh này ở trang đăng nhập và menu; index.html dùng làm favicon.</li>
+<li>Cỡ chữ: <strong>frontend/src/style.css</strong>. Bản này tăng chữ gốc từ 14px lên 16px, chữ bảng/nhãn từ 12px lên 14px và chữ nhỏ tối thiểu 12px. Các font-size riêng trong CSS vẫn quyết định cỡ chữ từng vùng; chỉ sửa :root không thay đổi mọi vùng.</li>
+<li>Logo được hiển thị 46×46px qua <strong>img.brand-mark</strong>, object-fit: contain giữ tỉ lệ.</li>
+<li>Sau khi sửa mã nguồn: cài Node.js và Java/Maven theo hướng dẫn Windows, tắt ứng dụng, chạy <strong>BUILD-LAI.cmd</strong>, rồi <strong>CHAY-UNG-DUNG.cmd</strong>. Trên Render, commit/push lên GitHub rồi deploy lại.</li>
+<li>Nguồn logo: https://www.haui.edu.vn/dnn/web/haui/assets/images/logo.png ; trang nhận diện HaUI: https://www.haui.edu.vn/vn/page/tttt/detail/61517 .</li>
+</ul>
+<h2 id="3-hieu-ung-cach-trien-khai">3. Hiểu đúng cách triển khai</h2>
+<p>Render chạy cả giao diện React đã build và backend Spring Boot trong <strong>một Docker Web Service</strong>. Không tạo Static Site riêng. MySQL đặt trên Aiven. Không cần bật máy cá nhân, không cần chạy file .cmd hoặc mở tunnel sau khi deploy xong.</p>
+<p><strong>Render Free không chạy liên tục không ngủ:</strong> sau 15 phút không có truy cập, dịch vụ có thể ngủ; lần mở lại thường mất khoảng một phút. File ghi vào ổ đĩa Render sẽ mất khi restart/redeploy/ngủ. Vì thế không dùng H2 file trên Render. Nếu cần phục vụ liên tục, chọn instance trả phí phù hợp; gói miễn phí phù hợp trình diễn đồ án.</p>
+<p>Aiven hiện có MySQL Free 1 GB dung lượng, không có hạn sử dụng cố định; vẫn có giới hạn và có thể bị tắt khi không hoạt động. Chọn đúng <strong>Free</strong>, không nhầm gói trial hoặc gói trả phí. Chính sách có thể thay đổi, kiểm tra màn hình giá trước khi tạo dịch vụ.</p>
+<p><strong>Dữ liệu trên máy không tự chuyển lên mạng.</strong> Hướng dẫn dưới đây tạo database online mới, ban đầu chỉ có một quản trị viên. Không đưa backend/data hoặc mật khẩu lên GitHub. Muốn mang toàn bộ dữ liệu H2 hiện có lên MySQL cần một bước chuyển dữ liệu riêng; chức năng CSV sinh viên không phải bản sao lưu toàn hệ thống.</p>
+<h2 id="4-tao-mysql-tren-aiven">4. Tạo MySQL trên Aiven</h2>
+<ol>
+<li>Mở https://console.aiven.io/ và tạo/đăng nhập tài khoản.</li>
+<li>Tạo project nếu được yêu cầu, chọn tạo dịch vụ <strong>MySQL</strong> và gói <strong>Free</strong>. Chọn vùng gần Render nếu gói cho phép.</li>
+<li>Đợi trạng thái <strong>Running</strong>. Trong trang <strong>Overview / Connection information</strong>, ghi lại: <strong>Host</strong>, <strong>Port</strong>, <strong>Database name</strong>, <strong>User</strong>, <strong>Password</strong>. Dùng đúng port được cấp; không mặc định cho rằng đó là 3306.</li>
+<li>Database thường tên <strong>defaultdb</strong>, user thường <strong>avnadmin</strong>; lấy giá trị thực trên tài khoản của bạn.</li>
+<li>Tải <strong>CA certificate</strong> trong thông tin kết nối. Mở file .pem bằng Notepad và giữ toàn bộ nội dung từ BEGIN CERTIFICATE đến END CERTIFICATE. Đây là chứng chỉ CA, không phải private key.</li>
+<li>Nếu đã giới hạn IP truy cập database, cho phép các dải outbound IP của Web Service Render (xem trang service Render → Connect/Outbound). Nếu chưa giới hạn, dùng mặc định để kết nối lần đầu rồi thiết lập theo nhu cầu.</li>
+</ol>
+<h2 id="5-ua-ma-nguon-len-github">5. Đưa mã nguồn lên GitHub</h2>
+<p>Cách dễ trên Windows: dùng https://desktop.github.com/ .</p>
+<ol>
+<li>Đăng nhập GitHub Desktop. Chọn <strong>File → New repository</strong>; đặt tên ví dụ <strong>unidesk-haui</strong>, tạo repository mới ở thư mục riêng.</li>
+<li>Mở thư mục repository vừa tạo trong Explorer. Chép <strong>nội dung bên trong student-manager-v2</strong> vào đó: ở gốc phải thấy <strong>Dockerfile</strong>, <strong>render.yaml</strong>, <strong>frontend</strong>, <strong>backend</strong>, <strong>deploy</strong>. Không lồng thêm một tầng student-manager-v2.</li>
+<li>Giữ file <strong>.gitignore</strong> đi kèm. Không đưa data, .env, certificate, node_modules, target hay release JAR lên GitHub. Gitignore đã loại chúng; kiểm tra danh sách Changes trước khi commit.</li>
+<li>Trong GitHub Desktop nhập Summary, ví dụ <code>HaUI UI and Render deployment</code>; chọn <strong>Commit to main</strong>, rồi <strong>Publish repository</strong>. Có thể giữ repository <strong>Private</strong> và cấp Render quyền đọc repository đó.</li>
+<li>Kiểm tra trên GitHub có Dockerfile ở gốc và có deploy/start-render.sh. Không tải file ZIP nguyên khối lên repository.</li>
+</ol>
+<h2 id="6-tao-web-service-tren-render">6. Tạo Web Service trên Render</h2>
+<ol>
+<li>Đăng nhập https://dashboard.render.com/ . Chọn <strong>New → Web Service</strong>, kết nối GitHub và chọn repository vừa tạo.</li>
+<li>Đặt Name tùy ý, ví dụ <strong>unidesk-haui</strong>. Chọn branch đã push (thường main).</li>
+<li><strong>Language/Runtime: Docker</strong>. <strong>Root Directory: để trống</strong> nếu Dockerfile nằm ở gốc. <strong>Dockerfile Path: ./Dockerfile</strong>. Chọn region gần database và Instance Type <strong>Free</strong> để thử.</li>
+<li>Không nhập lệnh npm start hay java vào Build/Start Command: Dockerfile và entrypoint đã lo phần này. Nếu có Docker Command, để trống.</li>
+<li>Mở <strong>Environment Variables</strong>, thêm chính xác bảng sau. Nhập giá trị thô, không bọc dấu nháy; không nhập mật khẩu vào mã nguồn.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SPRING_PROFILES_ACTIVE</td>
+<td>render</td>
+</tr>
+<tr>
+<td>DB_HOST</td>
+<td>Host của Aiven, chỉ hostname, không có https:// hay mysql://</td>
+</tr>
+<tr>
+<td>DB_PORT</td>
+<td>Port đúng từ Aiven</td>
+</tr>
+<tr>
+<td>DB_NAME</td>
+<td>Database của Aiven, thường defaultdb</td>
+</tr>
+<tr>
+<td>DB_USERNAME</td>
+<td>User MySQL từ Aiven</td>
+</tr>
+<tr>
+<td>DB_PASSWORD</td>
+<td>Password MySQL từ Aiven</td>
+</tr>
+<tr>
+<td>ADMIN_USERNAME</td>
+<td>admin hoặc tên tự đặt: 2–50 chữ thường/số/dấu chấm/gạch dưới/gạch ngang</td>
+</tr>
+<tr>
+<td>ADMIN_PASSWORD</td>
+<td>Mật khẩu quản trị do bạn tự tạo, ít nhất 12 ký tự, tối đa 72 byte UTF-8</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Trong mục <strong>Secret Files</strong> (có thể nằm trong Advanced/Environment), chọn Add Secret File. <strong>Filename: mysql-ca.pem</strong>. <strong>Contents: toàn bộ chứng chỉ CA của Aiven</strong>. Lưu lại. Docker sẽ đọc file ở <strong>/etc/secrets/mysql-ca.pem</strong> và tạo truststore tự động. Nếu giao diện chưa cho thêm trước lần deploy đầu, tạo service, bổ sung Secret File ngay trong Environment, rồi chọn Save, rebuild and deploy.</li>
+<li>Trong Advanced/Settings đặt <strong>Health Check Path: /api/health</strong>. Render tự cấp PORT; ứng dụng nhận PORT và lắng nghe trên 0.0.0.0, không cần đặt SERVER_PORT.</li>
+<li>Chọn <strong>Deploy Web Service</strong>. Lần đầu cần tải dependency và build Java/React, có thể mất vài phút. Theo dõi Logs đến khi <strong>Live</strong>.</li>
+<li>Mở URL <strong>https://<tên-dịch-vụ>.onrender.com</strong> mà Render cấp. Kiểm tra <code>/api/health</code> trả <code>{"status":"UP"}</code>.</li>
+<li>Đăng nhập bằng ADMIN_USERNAME và ADMIN_PASSWORD đã đặt. Ứng dụng yêu cầu đổi mật khẩu trước khi dùng. Không dùng Admin@2026Demo trên database online mới.</li>
+</ol>
+<p><strong>Tài khoản khởi tạo chỉ tạo khi bảng users trống.</strong> Deploy lại hoặc thay biến ADMIN_PASSWORD sẽ không đổi mật khẩu của tài khoản đã tồn tại. Ghi nhớ mật khẩu mới sau lần đổi đầu tiên. Không xóa bảng users để reset.</p>
+<p>Nếu thích Blueprint, file <strong>render.yaml</strong> đã có sẵn: New → Blueprint → chọn repository → nhập các biến sync:false. Tuy nhiên vẫn phải thêm Secret File <strong>mysql-ca.pem</strong> trong service rồi deploy lại. Với lần đầu, cách Web Service thủ công ở trên dễ theo dõi hơn.</p>
+<h2 id="7-nhap-du-lieu-va-su-dung">7. Nhập dữ liệu và sử dụng</h2>
+<p>Database online mới không có dữ liệu demo. Tạo theo thứ tự: <strong>Khoa → Ngành → Lớp hành chính</strong>, rồi <strong>Giảng viên, Sinh viên, Môn học, Học kỳ</strong>, tiếp theo <strong>Lớp học phần → Đăng ký học → Điểm</strong>. Cấp tài khoản cho hồ sơ sinh viên/giảng viên trong mục Tài khoản nếu cần.</p>
+<p>Sau khi online, có thể tắt máy cá nhân. Dữ liệu nằm trong MySQL Aiven và không mất chỉ vì Render deploy lại. Vẫn cần sao lưu database định kỳ; đừng coi CSV sinh viên là backup toàn bộ. Tắt/xóa service Render không tự xóa database Aiven. Xóa database Aiven là thao tác riêng và có thể mất dữ liệu.</p>
+<p>Muốn tạm ngừng truy cập: dùng <strong>Suspend service</strong> trong Render nếu có trên giao diện tài khoản. Không xóa database chỉ để tắt website. Khi cần dùng lại, resume/redeploy dịch vụ.</p>
+<h2 id="8-loi-thuong-gap">8. Lỗi thường gặp</h2>
+<table>
+<thead>
+<tr>
+<th>Hiện tượng</th>
+<th>Kiểm tra</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Missing /etc/secrets/mysql-ca.pem</td>
+<td>Thêm đúng Secret File và deploy lại, không chỉ tạo biến môi trường cùng tên.</td>
+</tr>
+<tr>
+<td>Communications link failure / timeout</td>
+<td>Aiven đang Running, đúng Host/Port, kiểm tra IP allowlist và kết nối mạng.</td>
+</tr>
+<tr>
+<td>Access denied for user</td>
+<td>Kiểm tra DB_USERNAME/DB_PASSWORD, không nhầm với tài khoản admin của ứng dụng.</td>
+</tr>
+<tr>
+<td>SSL handshake / PKIX / certificate</td>
+<td>Lấy lại CA đúng của dịch vụ Aiven hiện tại; dùng hostname Aiven, không IP. Giữ sslMode=VERIFY_IDENTITY.</td>
+</tr>
+<tr>
+<td>Set ADMIN_PASSWORD…</td>
+<td>Mật khẩu lần khởi tạo trống hoặc quá ngắn; sửa biến rồi deploy lại.</td>
+</tr>
+<tr>
+<td>No open ports / Health check failed</td>
+<td>Xem lỗi khởi động/database phía trước trong Logs; phải bật profile render, Health Check Path đúng.</td>
+</tr>
+<tr>
+<td>Cannot find Dockerfile</td>
+<td>Dockerfile ở gốc repo; Root Directory và Dockerfile Path phải khớp.</td>
+</tr>
+<tr>
+<td>Đăng nhập không giữ phiên</td>
+<td>Dùng URL HTTPS của Render; cookie của profile render chỉ gửi qua HTTPS.</td>
+</tr>
+<tr>
+<td>Trang mở chậm sau thời gian không dùng</td>
+<td>Đây có thể là lúc Render Free đang thức dậy.</td>
+</tr>
+<tr>
+<td>Out of memory / exit 137</td>
+<td>Gói RAM thấp; kiểm tra Logs, nâng instance nếu tải vượt khả năng.</td>
+</tr>
+<tr>
+<td>Chữ/logo còn như cũ</td>
+<td>Ctrl+F5; kiểm tra bản build/deploy mới đã Live.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="9-cac-file-cau-hinh-a-them">9. Các file cấu hình đã thêm</h2>
+<ul>
+<li><strong>Dockerfile</strong>: build React, chạy kiểm thử/build Spring Boot, đóng gói Java 21 runtime.</li>
+<li><strong>render.yaml</strong>: Blueprint mẫu, không chứa mật khẩu.</li>
+<li><strong>deploy/start-render.sh</strong>: nạp chứng chỉ CA, chạy JAR với heap tối đa 256 MB.</li>
+<li><strong>application-render.properties</strong>: nhận PORT, cookie HTTPS, MySQL TLS xác minh hostname, pool tối đa 5 kết nối; tắt seed demo.</li>
+<li><strong>BootstrapAdmin.java</strong>: tạo quản trị viên đầu tiên bằng mật khẩu môi trường, không reset khi restart.</li>
+<li><strong>Health.java</strong>: endpoint kiểm tra database, không công khai thông tin kết nối.</li>
+</ul>
+<p>Bản đóng gói được kiểm thử tại môi trường phát triển; chưa deploy vào tài khoản Render/Aiven của bạn. Kiểm tra MySQL/TLS thực tế sẽ diễn ra ở lần deploy của bạn.</p>
+<h2 id="tai-lieu-chinh-thuc">Tài liệu chính thức</h2>
+<ul>
+<li>https://render.com/docs/docker</li>
+<li>https://render.com/docs/web-services</li>
+<li>https://render.com/docs/free</li>
+<li>https://render.com/docs/configure-environment-variables</li>
+<li>https://aiven.io/docs/products/mysql/concepts/mysql-free-tier</li>
+<li>https://aiven.io/docs/products/mysql/howto/connect-from-mysql-workbench</li>
+</ul></section></main><div class="end">Bản đồ án minh họa · Java / Spring Boot / React · Tài liệu đi cùng mã nguồn</div></body></html>

@@ -1,0 +1,14 @@
+.git
+**/node_modules
+**/target
+**/dist
+**/data
+release
+docs
+*.zip
+HUONG-DAN*.html
+**/.env
+**/*.log
+**/*.pem
+**/*.key
+**/*.p12

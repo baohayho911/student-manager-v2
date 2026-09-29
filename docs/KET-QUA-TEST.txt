@@ -1,0 +1,12 @@
+-------------------------------------------------------------------------------
+Test set: vn.studentmanager.RenderTest
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.545 s -- in vn.studentmanager.RenderTest
+
+-------------------------------------------------------------------------------
+Test set: vn.studentmanager.ApplicationTest
+-------------------------------------------------------------------------------
+Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 19.28 s -- in vn.studentmanager.ApplicationTest
+
+HEADERS [ 'STT', 'ID', 'Mã', 'Tên', 'Ngành', 'Thao tác' ]
+PACKAGED JAR PASS: built frontend, login, data, catalog IDs, mobile; no Vite process.

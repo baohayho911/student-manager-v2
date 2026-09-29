@@ -1,0 +1,180 @@
+<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>HaUI và Render – Hướng dẫn cập nhật</title><style>body{max-width:1050px;margin:36px auto;padding:0 24px;font:17px/1.7 system-ui,sans-serif;color:#263b32;background:#fafbf8}h1{font-size:30px}h2{font-size:23px;margin-top:36px;color:#214b3c}table{border-collapse:collapse;display:block;overflow:auto}th,td{padding:12px;border:1px solid #cad6cd;text-align:left}th{background:#e6eee7}code{background:#e9eee9;padding:2px 5px}a{color:#135f94;overflow-wrap:anywhere}li{margin:9px 0}strong{font-weight:650}img{max-width:100%}</style><h1 id="cap-nhat-haui-va-trien-khai-render">Cập nhật HaUI và triển khai Render</h1>
+<p>Bản cập nhật ngày 29/09/2026. Gói này đã có logo HaUI, chữ lớn hơn và cấu hình Render + MySQL bên ngoài. UniDesk vẫn là tên ứng dụng đồ án.</p>
+<h2 id="1-dung-ban-moi-tren-windows">1. Dùng bản mới trên Windows</h2>
+<ol>
+<li>Tắt ứng dụng cũ bằng Ctrl+C tại cửa sổ đang chạy. Không chạy đồng thời hai bản.</li>
+<li>Sao lưu thư mục ứng dụng cũ, đặc biệt <strong>backend/data</strong>. Đây là dữ liệu H2 của cách chạy mặc định bằng CHAY-UNG-DUNG.cmd.</li>
+<li>Giải nén ZIP mới ra <strong>thư mục mới</strong>, không chạy trực tiếp trong ZIP.</li>
+<li>Nếu muốn giữ dữ liệu đã nhập: khi cả hai bản đều đã tắt, sao chép toàn bộ <strong>backend/data</strong> từ bản cũ sang đúng <strong>backend/data</strong> của bản mới, trước khi chạy bản mới. Không lấy thư mục target thay cho data. Nếu dùng MySQL từ trước, giữ cấu hình MySQL và sao lưu database MySQL thay vì chép H2.</li>
+<li>Mở <strong>CHAY-UNG-DUNG.cmd</strong>, truy cập <strong>http://localhost:8081</strong>. Bản JAR đã build sẵn nên không cần BUILD-LAI.cmd nếu chỉ sử dụng.</li>
+<li>Nếu trình duyệt còn hình cũ, nhấn Ctrl+F5. Tài khoản và dữ liệu cũ được giữ khi chép đúng data. Với database mới tại máy, tài khoản demo vẫn dùng như hướng dẫn Windows.</li>
+</ol>
+<p>Không thay đổi migration V1 hoặc xóa database để cập nhật giao diện.</p>
+<h2 id="2-muon-tu-sua-logo-va-co-chu-sau-nay">2. Muốn tự sửa logo và cỡ chữ sau này</h2>
+<ul>
+<li>Ảnh logo: <strong>frontend/public/haui-logo.png</strong>. Thay bằng ảnh cùng tên; nên dùng ảnh vuông, rõ nét. App.jsx dùng ảnh này ở trang đăng nhập và menu; index.html dùng làm favicon.</li>
+<li>Cỡ chữ: <strong>frontend/src/style.css</strong>. Bản này tăng chữ gốc từ 14px lên 16px, chữ bảng/nhãn từ 12px lên 14px và chữ nhỏ tối thiểu 12px. Các font-size riêng trong CSS vẫn quyết định cỡ chữ từng vùng; chỉ sửa :root không thay đổi mọi vùng.</li>
+<li>Logo được hiển thị 46×46px qua <strong>img.brand-mark</strong>, object-fit: contain giữ tỉ lệ.</li>
+<li>Sau khi sửa mã nguồn: cài Node.js và Java/Maven theo hướng dẫn Windows, tắt ứng dụng, chạy <strong>BUILD-LAI.cmd</strong>, rồi <strong>CHAY-UNG-DUNG.cmd</strong>. Trên Render, commit/push lên GitHub rồi deploy lại.</li>
+<li>Nguồn logo: https://www.haui.edu.vn/dnn/web/haui/assets/images/logo.png ; trang nhận diện HaUI: https://www.haui.edu.vn/vn/page/tttt/detail/61517 .</li>
+</ul>
+<h2 id="3-hieu-ung-cach-trien-khai">3. Hiểu đúng cách triển khai</h2>
+<p>Render chạy cả giao diện React đã build và backend Spring Boot trong <strong>một Docker Web Service</strong>. Không tạo Static Site riêng. MySQL đặt trên Aiven. Không cần bật máy cá nhân, không cần chạy file .cmd hoặc mở tunnel sau khi deploy xong.</p>
+<p><strong>Render Free không chạy liên tục không ngủ:</strong> sau 15 phút không có truy cập, dịch vụ có thể ngủ; lần mở lại thường mất khoảng một phút. File ghi vào ổ đĩa Render sẽ mất khi restart/redeploy/ngủ. Vì thế không dùng H2 file trên Render. Nếu cần phục vụ liên tục, chọn instance trả phí phù hợp; gói miễn phí phù hợp trình diễn đồ án.</p>
+<p>Aiven hiện có MySQL Free 1 GB dung lượng, không có hạn sử dụng cố định; vẫn có giới hạn và có thể bị tắt khi không hoạt động. Chọn đúng <strong>Free</strong>, không nhầm gói trial hoặc gói trả phí. Chính sách có thể thay đổi, kiểm tra màn hình giá trước khi tạo dịch vụ.</p>
+<p><strong>Dữ liệu trên máy không tự chuyển lên mạng.</strong> Hướng dẫn dưới đây tạo database online mới, ban đầu chỉ có một quản trị viên. Không đưa backend/data hoặc mật khẩu lên GitHub. Muốn mang toàn bộ dữ liệu H2 hiện có lên MySQL cần một bước chuyển dữ liệu riêng; chức năng CSV sinh viên không phải bản sao lưu toàn hệ thống.</p>
+<h2 id="4-tao-mysql-tren-aiven">4. Tạo MySQL trên Aiven</h2>
+<ol>
+<li>Mở https://console.aiven.io/ và tạo/đăng nhập tài khoản.</li>
+<li>Tạo project nếu được yêu cầu, chọn tạo dịch vụ <strong>MySQL</strong> và gói <strong>Free</strong>. Chọn vùng gần Render nếu gói cho phép.</li>
+<li>Đợi trạng thái <strong>Running</strong>. Trong trang <strong>Overview / Connection information</strong>, ghi lại: <strong>Host</strong>, <strong>Port</strong>, <strong>Database name</strong>, <strong>User</strong>, <strong>Password</strong>. Dùng đúng port được cấp; không mặc định cho rằng đó là 3306.</li>
+<li>Database thường tên <strong>defaultdb</strong>, user thường <strong>avnadmin</strong>; lấy giá trị thực trên tài khoản của bạn.</li>
+<li>Tải <strong>CA certificate</strong> trong thông tin kết nối. Mở file .pem bằng Notepad và giữ toàn bộ nội dung từ BEGIN CERTIFICATE đến END CERTIFICATE. Đây là chứng chỉ CA, không phải private key.</li>
+<li>Nếu đã giới hạn IP truy cập database, cho phép các dải outbound IP của Web Service Render (xem trang service Render → Connect/Outbound). Nếu chưa giới hạn, dùng mặc định để kết nối lần đầu rồi thiết lập theo nhu cầu.</li>
+</ol>
+<h2 id="5-ua-ma-nguon-len-github">5. Đưa mã nguồn lên GitHub</h2>
+<p>Cách dễ trên Windows: dùng https://desktop.github.com/ .</p>
+<ol>
+<li>Đăng nhập GitHub Desktop. Chọn <strong>File → New repository</strong>; đặt tên ví dụ <strong>unidesk-haui</strong>, tạo repository mới ở thư mục riêng.</li>
+<li>Mở thư mục repository vừa tạo trong Explorer. Chép <strong>nội dung bên trong student-manager-v2</strong> vào đó: ở gốc phải thấy <strong>Dockerfile</strong>, <strong>render.yaml</strong>, <strong>frontend</strong>, <strong>backend</strong>, <strong>deploy</strong>. Không lồng thêm một tầng student-manager-v2.</li>
+<li>Giữ file <strong>.gitignore</strong> đi kèm. Không đưa data, .env, certificate, node_modules, target hay release JAR lên GitHub. Gitignore đã loại chúng; kiểm tra danh sách Changes trước khi commit.</li>
+<li>Trong GitHub Desktop nhập Summary, ví dụ <code>HaUI UI and Render deployment</code>; chọn <strong>Commit to main</strong>, rồi <strong>Publish repository</strong>. Có thể giữ repository <strong>Private</strong> và cấp Render quyền đọc repository đó.</li>
+<li>Kiểm tra trên GitHub có Dockerfile ở gốc và có deploy/start-render.sh. Không tải file ZIP nguyên khối lên repository.</li>
+</ol>
+<h2 id="6-tao-web-service-tren-render">6. Tạo Web Service trên Render</h2>
+<ol>
+<li>Đăng nhập https://dashboard.render.com/ . Chọn <strong>New → Web Service</strong>, kết nối GitHub và chọn repository vừa tạo.</li>
+<li>Đặt Name tùy ý, ví dụ <strong>unidesk-haui</strong>. Chọn branch đã push (thường main).</li>
+<li><strong>Language/Runtime: Docker</strong>. <strong>Root Directory: để trống</strong> nếu Dockerfile nằm ở gốc. <strong>Dockerfile Path: ./Dockerfile</strong>. Chọn region gần database và Instance Type <strong>Free</strong> để thử.</li>
+<li>Không nhập lệnh npm start hay java vào Build/Start Command: Dockerfile và entrypoint đã lo phần này. Nếu có Docker Command, để trống.</li>
+<li>Mở <strong>Environment Variables</strong>, thêm chính xác bảng sau. Nhập giá trị thô, không bọc dấu nháy; không nhập mật khẩu vào mã nguồn.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SPRING_PROFILES_ACTIVE</td>
+<td>render</td>
+</tr>
+<tr>
+<td>DB_HOST</td>
+<td>Host của Aiven, chỉ hostname, không có https:// hay mysql://</td>
+</tr>
+<tr>
+<td>DB_PORT</td>
+<td>Port đúng từ Aiven</td>
+</tr>
+<tr>
+<td>DB_NAME</td>
+<td>Database của Aiven, thường defaultdb</td>
+</tr>
+<tr>
+<td>DB_USERNAME</td>
+<td>User MySQL từ Aiven</td>
+</tr>
+<tr>
+<td>DB_PASSWORD</td>
+<td>Password MySQL từ Aiven</td>
+</tr>
+<tr>
+<td>ADMIN_USERNAME</td>
+<td>admin hoặc tên tự đặt: 2–50 chữ thường/số/dấu chấm/gạch dưới/gạch ngang</td>
+</tr>
+<tr>
+<td>ADMIN_PASSWORD</td>
+<td>Mật khẩu quản trị do bạn tự tạo, ít nhất 12 ký tự, tối đa 72 byte UTF-8</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Trong mục <strong>Secret Files</strong> (có thể nằm trong Advanced/Environment), chọn Add Secret File. <strong>Filename: mysql-ca.pem</strong>. <strong>Contents: toàn bộ chứng chỉ CA của Aiven</strong>. Lưu lại. Docker sẽ đọc file ở <strong>/etc/secrets/mysql-ca.pem</strong> và tạo truststore tự động. Nếu giao diện chưa cho thêm trước lần deploy đầu, tạo service, bổ sung Secret File ngay trong Environment, rồi chọn Save, rebuild and deploy.</li>
+<li>Trong Advanced/Settings đặt <strong>Health Check Path: /api/health</strong>. Render tự cấp PORT; ứng dụng nhận PORT và lắng nghe trên 0.0.0.0, không cần đặt SERVER_PORT.</li>
+<li>Chọn <strong>Deploy Web Service</strong>. Lần đầu cần tải dependency và build Java/React, có thể mất vài phút. Theo dõi Logs đến khi <strong>Live</strong>.</li>
+<li>Mở URL <strong>https://<tên-dịch-vụ>.onrender.com</strong> mà Render cấp. Kiểm tra <code>/api/health</code> trả <code>{"status":"UP"}</code>.</li>
+<li>Đăng nhập bằng ADMIN_USERNAME và ADMIN_PASSWORD đã đặt. Ứng dụng yêu cầu đổi mật khẩu trước khi dùng. Không dùng Admin@2026Demo trên database online mới.</li>
+</ol>
+<p><strong>Tài khoản khởi tạo chỉ tạo khi bảng users trống.</strong> Deploy lại hoặc thay biến ADMIN_PASSWORD sẽ không đổi mật khẩu của tài khoản đã tồn tại. Ghi nhớ mật khẩu mới sau lần đổi đầu tiên. Không xóa bảng users để reset.</p>
+<p>Nếu thích Blueprint, file <strong>render.yaml</strong> đã có sẵn: New → Blueprint → chọn repository → nhập các biến sync:false. Tuy nhiên vẫn phải thêm Secret File <strong>mysql-ca.pem</strong> trong service rồi deploy lại. Với lần đầu, cách Web Service thủ công ở trên dễ theo dõi hơn.</p>
+<h2 id="7-nhap-du-lieu-va-su-dung">7. Nhập dữ liệu và sử dụng</h2>
+<p>Database online mới không có dữ liệu demo. Tạo theo thứ tự: <strong>Khoa → Ngành → Lớp hành chính</strong>, rồi <strong>Giảng viên, Sinh viên, Môn học, Học kỳ</strong>, tiếp theo <strong>Lớp học phần → Đăng ký học → Điểm</strong>. Cấp tài khoản cho hồ sơ sinh viên/giảng viên trong mục Tài khoản nếu cần.</p>
+<p>Sau khi online, có thể tắt máy cá nhân. Dữ liệu nằm trong MySQL Aiven và không mất chỉ vì Render deploy lại. Vẫn cần sao lưu database định kỳ; đừng coi CSV sinh viên là backup toàn bộ. Tắt/xóa service Render không tự xóa database Aiven. Xóa database Aiven là thao tác riêng và có thể mất dữ liệu.</p>
+<p>Muốn tạm ngừng truy cập: dùng <strong>Suspend service</strong> trong Render nếu có trên giao diện tài khoản. Không xóa database chỉ để tắt website. Khi cần dùng lại, resume/redeploy dịch vụ.</p>
+<h2 id="8-loi-thuong-gap">8. Lỗi thường gặp</h2>
+<table>
+<thead>
+<tr>
+<th>Hiện tượng</th>
+<th>Kiểm tra</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Missing /etc/secrets/mysql-ca.pem</td>
+<td>Thêm đúng Secret File và deploy lại, không chỉ tạo biến môi trường cùng tên.</td>
+</tr>
+<tr>
+<td>Communications link failure / timeout</td>
+<td>Aiven đang Running, đúng Host/Port, kiểm tra IP allowlist và kết nối mạng.</td>
+</tr>
+<tr>
+<td>Access denied for user</td>
+<td>Kiểm tra DB_USERNAME/DB_PASSWORD, không nhầm với tài khoản admin của ứng dụng.</td>
+</tr>
+<tr>
+<td>SSL handshake / PKIX / certificate</td>
+<td>Lấy lại CA đúng của dịch vụ Aiven hiện tại; dùng hostname Aiven, không IP. Giữ sslMode=VERIFY_IDENTITY.</td>
+</tr>
+<tr>
+<td>Set ADMIN_PASSWORD…</td>
+<td>Mật khẩu lần khởi tạo trống hoặc quá ngắn; sửa biến rồi deploy lại.</td>
+</tr>
+<tr>
+<td>No open ports / Health check failed</td>
+<td>Xem lỗi khởi động/database phía trước trong Logs; phải bật profile render, Health Check Path đúng.</td>
+</tr>
+<tr>
+<td>Cannot find Dockerfile</td>
+<td>Dockerfile ở gốc repo; Root Directory và Dockerfile Path phải khớp.</td>
+</tr>
+<tr>
+<td>Đăng nhập không giữ phiên</td>
+<td>Dùng URL HTTPS của Render; cookie của profile render chỉ gửi qua HTTPS.</td>
+</tr>
+<tr>
+<td>Trang mở chậm sau thời gian không dùng</td>
+<td>Đây có thể là lúc Render Free đang thức dậy.</td>
+</tr>
+<tr>
+<td>Out of memory / exit 137</td>
+<td>Gói RAM thấp; kiểm tra Logs, nâng instance nếu tải vượt khả năng.</td>
+</tr>
+<tr>
+<td>Chữ/logo còn như cũ</td>
+<td>Ctrl+F5; kiểm tra bản build/deploy mới đã Live.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="9-cac-file-cau-hinh-a-them">9. Các file cấu hình đã thêm</h2>
+<ul>
+<li><strong>Dockerfile</strong>: build React, chạy kiểm thử/build Spring Boot, đóng gói Java 21 runtime.</li>
+<li><strong>render.yaml</strong>: Blueprint mẫu, không chứa mật khẩu.</li>
+<li><strong>deploy/start-render.sh</strong>: nạp chứng chỉ CA, chạy JAR với heap tối đa 256 MB.</li>
+<li><strong>application-render.properties</strong>: nhận PORT, cookie HTTPS, MySQL TLS xác minh hostname, pool tối đa 5 kết nối; tắt seed demo.</li>
+<li><strong>BootstrapAdmin.java</strong>: tạo quản trị viên đầu tiên bằng mật khẩu môi trường, không reset khi restart.</li>
+<li><strong>Health.java</strong>: endpoint kiểm tra database, không công khai thông tin kết nối.</li>
+</ul>
+<p>Bản đóng gói được kiểm thử tại môi trường phát triển; chưa deploy vào tài khoản Render/Aiven của bạn. Kiểm tra MySQL/TLS thực tế sẽ diễn ra ở lần deploy của bạn.</p>
+<h2 id="tai-lieu-chinh-thuc">Tài liệu chính thức</h2>
+<ul>
+<li>https://render.com/docs/docker</li>
+<li>https://render.com/docs/web-services</li>
+<li>https://render.com/docs/free</li>
+<li>https://render.com/docs/configure-environment-variables</li>
+<li>https://aiven.io/docs/products/mysql/concepts/mysql-free-tier</li>
+<li>https://aiven.io/docs/products/mysql/howto/connect-from-mysql-workbench</li>
+</ul></html>
