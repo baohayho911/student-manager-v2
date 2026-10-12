@@ -90,6 +90,7 @@ const sectionColumns = [
 function Login({ onLogin }) {
   const [username, setUsername] = useState(""),
     [password, setPassword] = useState(""),
+    [showPassword, setShowPassword] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   async function submit(e) {
@@ -105,103 +106,42 @@ function Login({ onLogin }) {
     }
   }
   return (
-    <div className="login-page">
-      <div className="login-story">
-        <div className="brand">
-          <img className="brand-mark" src="/haui-logo.png" alt="Logo HaUI" />
-          <strong>UniDesk</strong>
-        </div>
-        <div className="story-copy">
-          <span className="eyebrow">KẾT NỐI HỌC TẬP · QUẢN LÝ HIỆU QUẢ</span>
-          <h1>
-            Một không gian.
-            <br />
-            Mọi hành trình
-            <br />
-            <em>học tập.</em>
-          </h1>
-          <p>
-            Cổng thông tin dành cho sinh viên,
-            <br />
-            giảng viên và cán bộ quản lý.
-          </p>
-        </div>
-        <svg className="campus" viewBox="0 0 640 290" aria-hidden="true">
-          <path d="M0 265h640v25H0z" fill="#c4b393" />
-          <path d="M92 83h330v182H92z" fill="#e4d8bb" />
-          <path d="M74 78h366v16H74zM110 58h300v20H110z" fill="#baa47e" />
-          <path d="M251 22h14v36h-14z" fill="#786849" />
-          <path d="M265 24h42v24h-42z" fill="#d9a333" />
-          {[0, 1, 2, 3, 4, 5].map((x) =>
-            [0, 1, 2].map((y) => (
-              <rect
-                key={x + "-" + y}
-                x={115 + x * 49}
-                y={112 + y * 44}
-                width="27"
-                height="28"
-                fill="#7c8b7b"
-              />
-            )),
-          )}
-          <path d="M220 220h70v45h-70z" fill="#665d4b" />
-          <path d="M444 143h124v122H444z" fill="#d2c2a4" />
-          {[0, 1, 2].map((x) => (
-            <path
-              key={x}
-              d={"M" + (460 + x * 32) + " 165h18v65h-18z"}
-              fill="#829380"
-            />
-          ))}
-          <path d="M36 194v71m562-96v96" stroke="#746d55" strokeWidth="9" />
-          <circle cx="36" cy="174" r="34" fill="#91a087" />
-          <circle cx="598" cy="151" r="45" fill="#829778" />
-        </svg>
-        <div className="story-footer">
-          HỆ THỐNG QUẢN LÝ SINH VIÊN <span>PHIÊN BẢN 2.0</span>
-        </div>
-      </div>
-      <div className="login-panel">
-        <form className="login-form" onSubmit={submit}>
-          <img className="brand-mark" src="/haui-logo.png" alt="Logo HaUI" />
-          <h2>Chào mừng trở lại</h2>
-          <p>Đăng nhập để truy cập cổng thông tin của bạn.</p>
-          {error && (
-            <div className="alert error" role="alert">
-              {error}
-            </div>
-          )}
-          <label>
-            Tên đăng nhập
-            <input
-              autoComplete="username"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Nhập mã sinh viên hoặc tài khoản"
-            />
-          </label>
-          <label>
-            Mật khẩu
-            <input
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Nhập mật khẩu"
-            />
-          </label>
-          <button className="login-submit" disabled={busy}>
-            {busy ? "Đang đăng nhập…" : "Đăng nhập →"}
+    <main className="login-page">
+      <section className="login-panel" aria-labelledby="login-title">
+        <img className="login-logo" src="/haui-logo.png" alt="Logo HaUI" />
+        <h1 id="login-title">Đại học Công nghiệp Hà Nội</h1>
+        <p className="login-subtitle">One HaUI</p>
+        <form className="login-form" onSubmit={submit} aria-busy={busy}>
+          {error && <div className="alert error" role="alert">{error}</div>}
+          <label htmlFor="login-username">Tên đăng nhập</label>
+          <input id="login-username" autoComplete="username" autoCapitalize="none"
+            spellCheck={false} required value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            title="Mã sinh viên, mã giảng viên hoặc tài khoản quản trị viên" />
+          <label htmlFor="login-password">Mật khẩu</label>
+          <div className="login-password">
+            <input id="login-password" type={showPassword ? "text" : "password"}
+              autoComplete="current-password" required value={password}
+              onChange={(e) => setPassword(e.target.value)} />
+            <button className="password-toggle" type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              aria-pressed={showPassword} aria-controls="login-password">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                <circle cx="12" cy="12" r="3" />
+                {showPassword && <path d="m3 3 18 18" />}
+              </svg>
+            </button>
+          </div>
+          <button className="login-submit" type="submit" disabled={busy}>
+            {busy ? "Đang đăng nhập…" : "Đăng nhập"}
           </button>
-          <p className="login-help">
-            Quên mật khẩu? Liên hệ quản trị viên để được cấp lại.
-          </p>
         </form>
-        <div className="login-bottom">UniDesk · Quản lý sinh viên</div>
-      </div>
-    </div>
+        <p className="login-copyright">Copyright {new Date().getFullYear()} © HaUI</p>
+      </section>
+    </main>
   );
 }
 
@@ -1450,7 +1390,7 @@ export default function App() {
     setMenu(false);
     setMessage("");
   }
-  if (checking) return <div className="boot">Đang kết nối UniDesk…</div>;
+  if (checking) return <div className="boot">Đang kết nối hệ thống…</div>;
   if (!user)
     return (
       <Login
@@ -1510,7 +1450,6 @@ export default function App() {
         >
           <img className="brand-mark" src="/haui-logo.png" alt="Logo HaUI" />
           <div>
-            <strong>UniDesk</strong>
             <small>QUẢN LÝ SINH VIÊN</small>
           </div>
         </a>
@@ -1530,7 +1469,6 @@ export default function App() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <span className="status-dot" /> Phiên bản đồ án · 2.0
           <p>{labels[user.role]}</p>
         </div>
       </aside>
@@ -1624,7 +1562,7 @@ export default function App() {
             />
           )}
           <footer className="app-footer">
-            UniDesk · Hệ thống quản lý sinh viên{" "}
+            Hệ thống quản lý sinh viên{" "}
             <span>Dữ liệu học tập, trong tầm tay.</span>
           </footer>
         </main>
